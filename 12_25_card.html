@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- 
+        [5. 메타 태그 설정] 
+        카카오톡, 페이스북 등 공유 시 보여질 미리보기 정보입니다.
+        실제 배포 시 content 내용을 수정해주세요.
+    -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="크리스마스 카드가 도착했어요! 🎄">
+    <meta property="og:description" content="특별한 크리스마스 메시지를 확인해보세요.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1543589077-47d81606c1bf?q=80&w=1000&auto=format&fit=crop">
+    <meta property="og:url" content="https://your-domain.com">
+
+    <title>Merry Christmas!</title>
+
+    <!-- 구글 폰트: Nanum Pen Script (손글씨 느낌) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+
+    <!-- [2. 디자인 컨셉 (CSS)] -->
+    <style>
+        /* 초기화 및 기본 스타일 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh; /* 모바일 브라우저 호환성을 위해 JS로 보정 가능 */
+            overflow: hidden; /* 스크롤 방지 */
+            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364); /* 밤하늘 그라데이션 */
+            font-family: 'Nanum Pen Script', cursive;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 눈 내리는 효과를 위한 캔버스 (배경) */
+        #snow-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* 배경 */
+            pointer-events: none; /* 클릭 통과 */
+        }
+
+        /* 메인 카드 컨테이너 */
+        .card-container {
+            position: relative;
+            z-index: 10; /* 눈보다 위에 배치 */
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05); /* 유리에 비친 듯한 효과 */
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* 둥둥 떠다니는 애니메이션 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* 텍스트 스타일 */
+        h1, h2, p {
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); /* 텍스트 발광 효과 */
+        }
+
+        .to-text {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #ffecd2;
+        }
+
+        .message-text {
+            font-size: 1.8rem;
+            line-height: 1.4;
+            margin: 2rem 0;
+            min-height: 80px;
+            white-space: pre-wrap; /* 줄바꿈 허용 */
+            word-break: keep-all;
+        }
+
+        .from-text {
+            font-size: 2rem;
+            color: #ffecd2;
+            margin-top: 1rem;
+            text-align: right;
+        }
+
+        /* [중앙 오브젝트: CSS 크리스마스 트리] */
+        .tree-wrapper {
+            position: relative;
+            width: 120px;
+            height: 160px;
+            margin: 0 auto;
+            /* 트리가 빛나는 효과 */
+            filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.4)); 
+        }
+
+        .star {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            color: #ffd700;
+            animation: twinkle 1.5s infinite alternate;
+            z-index: 5;
+        }
+
+        .tree-layer {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        .layer-1 { /* 상단 */
+            top: 10px;
+            border-width: 0 30px 40px 30px;
+            border-color: transparent transparent #2ecc71 transparent;
+            z-index: 3;
+        }
+        .layer-2 { /* 중단 */
+            top: 35px;
+            border-width: 0 45px 55px 45px;
+            border-color: transparent transparent #27ae60 transparent;
+            z-index: 2;
+        }
+        .layer-3 { /* 하단 */
+            top: 70px;
+            border-width: 0 60px 70px 60px;
+            border-color: transparent transparent #145a32 transparent;
+            z-index: 1;
+        }
+
+        .trunk { /* 나무 기둥 */
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 25px;
+            background-color: #795548;
+            z-index: 0;
+        }
+
+        /* 오너먼트 (장식 볼) */
+        .ornament {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #fff;
+            animation: blink 2s infinite;
+        }
+        .o1 { top: 40px; left: -10px; animation-delay: 0s; }
+        .o2 { top: 75px; left: 15px; animation-delay: 0.5s; background: #3498db; }
+        .o3 { top: 100px; left: -20px; animation-delay: 1s; background: #f1c40f; }
+
+        @keyframes twinkle {
+            0% { opacity: 0.5; transform: translateX(-50%) scale(0.8); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; filter: brightness(1.5); }
+            50% { opacity: 0.5; filter: brightness(1); }
+        }
+
+        /* [4. 컨트롤 버튼 UI] */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-family: 'Nanum Pen Script', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            backdrop-filter: blur(3px);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        /* [5. AI 모달 및 입력 폼 스타일 (추가됨)] */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.3);
+            text-align: left;
+            position: relative;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #ffecd2;
+            margin-bottom: 5px;
+            font-size: 1.2rem;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-family: 'Nanum Pen Script', cursive;
+            font-size: 1.2rem;
+        }
+
+        .input-group textarea {
+            height: 80px;
+            resize: none;
+        }
+
+        /* AI 버튼 스타일 */
+        .ai-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+            border: none;
+            width: 100%;
+            margin-top: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .ai-btn.loading {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        .action-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .close-btn {
+            background: #e74c3c;
+            border: none;
+        }
+
+        .apply-btn {
+            background: #2ecc71;
+            border: none;
+            flex-grow: 1;
+        }
+
+        /* 숨겨진 오디오 요소 */
+        audio { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- 눈 내리는 캔버스 -->
+    <canvas id="snow-canvas"></canvas>
+
+    <!-- 카드 내용 -->
+    <div class="card-container">
+        <!-- 받는 사람 -->
+        <h1 class="to-text" id="to">To. 사랑하는 너에게</h1>
+
+        <!-- CSS 크리스마스 트리 -->
+        <div class="tree-wrapper">
+            <div class="star">★</div>
+            <div class="tree-layer layer-1">
+                <div class="ornament o1"></div>
+            </div>
+            <div class="tree-layer layer-2">
+                 <div class="ornament o2"></div>
+            </div>
+            <div class="tree-layer layer-3">
+                 <div class="ornament o3"></div>
+            </div>
+            <div class="trunk"></div>
+        </div>
+
+        <!-- 메인 메시지 -->
+        <p class="message-text" id="msg">
+            즐겁고 행복한<br>크리스마스 보내! 🎄
+        </p>
+
+        <!-- 보내는 사람 -->
+        <p class="from-text" id="from">From. 산타가</p>
+    </div>
+
+    <!-- [편집 모달 창 추가] -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal-content">
+            <h2 style="text-align: center; margin-bottom: 1rem; color: #fff;">카드 만들기 ✍️</h2>
+            
+            <div class="input-group">
+                <label>받는 사람</label>
+                <input type="text" id="input-to" value="사랑하는 너에게">
+            </div>
+
+            <div class="input-group">
+                <label>보내는 사람</label>
+                <input type="text" id="input-from" value="산타가">
+            </div>
+
+            <div class="input-group">
+                <label>메시지</label>
+                <button class="btn ai-btn" id="ai-generate-btn">✨ AI 마법사로 메시지 자동 생성</button>
+                <textarea id="input-msg" placeholder="여기에 메시지를 적거나 위 버튼을 눌러보세요!">즐겁고 행복한 크리스마스 보내!</textarea>
+            </div>
+
+            <div class="action-btn-group">
+                <button class="btn close-btn" id="modal-close">닫기</button>
+                <button class="btn apply-btn" id="modal-apply">적용하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단 컨트롤 버튼 -->
+    <div class="controls">
+        <button class="btn" id="edit-btn">✏️ 카드 쓰기</button>
+        <button class="btn" id="bgm-btn">🎵 BGM Play</button>
+        <button class="btn" id="share-btn">🔗 링크 복사</button>
+    </div>
+
+    <!-- [4. BGM 파일 설정] -->
+    <!-- music.mp3 파일을 같은 폴더에 넣거나, 외부 URL을 src에 입력하세요 -->
+    <!-- 무료 캐롤 예시 URL을 넣어두었습니다 -->
+    <audio id="bgm" loop>
+        <source src="Christmas_Homecoming.mp3" type="audio/mpeg">
+        브라우저가 오디오를 지원하지 않습니다.
+    </audio>
+
+    <!-- [3. 기능 로직 (JavaScript)] -->
+    <script>
+        // 현재 공유할 URL을 저장하는 전역 변수 (초기값: 현재 주소)
+        let currentShareUrl = window.location.href;
+
+        /** * 1. URL 파라미터 파싱 및 텍스트 적용
+         * 예: index.html?to=영희&from=철수&msg=메리크리스마스
+         */
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            
+            // 파라미터 가져오기 (없으면 기본값 사용)
+            const toName = params.get('to');
+            const fromName = params.get('from');
+            const message = params.get('msg');
+
+            // DOM 요소 업데이트
+            if (toName) document.getElementById('to').innerText = `To. ${toName}`;
+            if (fromName) document.getElementById('from').innerText = `From. ${fromName}`;
+            if (message) document.getElementById('msg').innerText = message;
+
+            // 눈 내리는 효과 시작
+            startSnowFall();
+        };
+
+        // --- Gemini API 기능 추가 ---
+        const apiKey = ""; // API 키는 실행 환경에서 자동으로 제공됩니다.
+
+        async function generateChristmasMessage(to, from) {
+            const btn = document.getElementById('ai-generate-btn');
+            const originalText = btn.innerText;
+            
+            try {
+                btn.innerText = "✨ 산타가 메시지를 생각중...";
+                btn.classList.add('loading');
+
+                const prompt = `
+                    작성자: ${from}
+                    수신자: ${to}
+                    
+                    위 정보를 바탕으로 크리스마스 카드에 들어갈 아주 감동적이고 따뜻한 짧은 메시지를 한국어로 2~3문장 작성해줘. 
+                    이모지를 적절히 섞어서 예쁘고 사랑스럽게.
+                    결과물에는 메시지 내용만 출력해줘.
+                `;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) throw new Error('API 호출 실패');
+
+                const data = await response.json();
+                const generatedText = data.candidates[0].content.parts[0].text;
+
+                // 텍스트 영역에 자동 입력
+                document.getElementById('input-msg').value = generatedText;
+
+            } catch (error) {
+                console.error("AI 생성 실패:", error);
+                alert("산타와의 통신이 원활하지 않아요 😭 직접 입력해주세요!");
+            } finally {
+                btn.innerText = originalText;
+                btn.classList.remove('loading');
+            }
+        }
+
+        // --- 모달 관련 로직 ---
+        const modal = document.getElementById('edit-modal');
+        const editBtn = document.getElementById('edit-btn');
+        const closeBtn = document.getElementById('modal-close');
+        const applyBtn = document.getElementById('modal-apply');
+        const aiBtn = document.getElementById('ai-generate-btn');
+
+        // 모달 열기
+        editBtn.addEventListener('click', () => {
+            // 현재 화면의 값을 input에 채워넣기
+            document.getElementById('input-to').value = document.getElementById('to').innerText.replace('To. ', '');
+            document.getElementById('input-from').value = document.getElementById('from').innerText.replace('From. ', '');
+            document.getElementById('input-msg').value = document.getElementById('msg').innerText;
+            
+            modal.style.display = 'flex';
+        });
+
+        // 모달 닫기
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // AI 메시지 생성 버튼 클릭
+        aiBtn.addEventListener('click', () => {
+            const to = document.getElementById('input-to').value || "친구";
+            const from = document.getElementById('input-from').value || "나";
+            generateChristmasMessage(to, from);
+        });
+
+        // 적용하기 버튼 클릭
+        applyBtn.addEventListener('click', () => {
+            const newTo = document.getElementById('input-to').value;
+            const newFrom = document.getElementById('input-from').value;
+            const newMsg = document.getElementById('input-msg').value;
+
+            // 1. 화면 갱신
+            document.getElementById('to').innerText = `To. ${newTo}`;
+            document.getElementById('from').innerText = `From. ${newFrom}`;
+            document.getElementById('msg').innerText = newMsg;
+
+            // 2. URL 업데이트 로직 수정 (SecurityError 방지 및 링크 생성)
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('to', newTo);
+            newUrl.searchParams.set('from', newFrom);
+            newUrl.searchParams.set('msg', newMsg);
+            
+            // 공유할 URL 변수에 저장 (pushState 실패 시에도 공유 기능 작동 보장)
+            currentShareUrl = newUrl.toString();
+
+            try {
+                // 미리보기 환경에서는 이 부분이 에러를 발생시킬 수 있으므로 try-catch 처리
+                window.history.pushState({}, '', newUrl);
+            } catch (e) {
+                console.warn("주소창 URL 업데이트가 차단되었습니다 (미리보기 환경). 공유 링크는 정상적으로 생성되었습니다.", e);
+            }
+
+            modal.style.display = 'none';
+        });
+
+        /**
+         * 2. Canvas 눈 내리는 효과 (Snowfall)
+         */
+        function startSnowFall() {
+            const canvas = document.getElementById('snow-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // 캔버스 크기 설정
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // 눈송이 설정
+            const snowflakes = [];
+            const maxSnowflakes = 150; // 눈송이 개수 (성능에 따라 조절)
+
+            class Snowflake {
+                constructor() {
+                    this.reset();
+                }
+
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height * -1; // 화면 위에서 시작
+                    this.size = Math.random() * 3 + 1; // 크기 1~4px
+                    this.speed = Math.random() * 1 + 0.5; // 속도
+                    this.opacity = Math.random() * 0.5 + 0.3; // 투명도
+                    this.sway = Math.random() * 0.02 - 0.01; // 좌우 흔들림
+                }
+
+                update() {
+                    this.y += this.speed;
+                    this.x += Math.sin(this.y * 0.01) + this.sway;
+
+                    // 화면 바닥에 닿으면 다시 위로 리셋
+                    if (this.y > canvas.height) {
+                        this.reset();
+                    }
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+
+            // 초기 눈송이 생성
+            for (let i = 0; i < maxSnowflakes; i++) {
+                const flake = new Snowflake();
+                // 처음에 화면 전체에 퍼져있게 배치
+                flake.y = Math.random() * canvas.height;
+                snowflakes.push(flake);
+            }
+
+            // 애니메이션 루프
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                snowflakes.forEach(flake => {
+                    flake.update();
+                    flake.draw();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        /**
+         * 3. BGM 재생 컨트롤
+         */
+        const bgmBtn = document.getElementById('bgm-btn');
+        const audio = document.getElementById('bgm');
+        let isPlaying = false;
+
+        bgmBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                bgmBtn.innerText = "🎵 BGM Play";
+                bgmBtn.style.background = "rgba(255, 255, 255, 0.2)";
+            } else {
+                audio.play().then(() => {
+                    bgmBtn.innerText = "⏸ BGM Pause";
+                    bgmBtn.style.background = "rgba(255, 215, 0, 0.4)"; // 재생 중일 때 금빛
+                }).catch(e => {
+                    alert("브라우저 정책으로 인해 재생할 수 없습니다. 다시 시도해주세요.");
+                    console.error(e);
+                });
+            }
+            isPlaying = !isPlaying;
+        });
+
+        /**
+         * 4. 링크 공유 기능 (클립보드 복사)
+         * 수정: window.location.href 대신 currentShareUrl 사용
+         */
+        const shareBtn = document.getElementById('share-btn');
+        shareBtn.addEventListener('click', () => {
+            // 주소창 업데이트가 실패했더라도 저장된 URL 사용
+            const shareUrl = currentShareUrl;
+            
+            // Clipboard API 사용
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                const originalText = shareBtn.innerText;
+                shareBtn.innerText = "✅ 복사 완료!";
+                setTimeout(() => {
+                    shareBtn.innerText = originalText;
+                }, 2000);
+            }).catch(err => {
+                prompt("이 링크를 복사해서 전달하세요:", shareUrl);
+            });
+        });
+
+    </script>
+</body>
+</html>
